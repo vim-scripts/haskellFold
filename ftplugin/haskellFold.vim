@@ -5,8 +5,9 @@
 " Warning: Assume the presence of type signatures on top of your functions to
 "          work well.
 " Usage:   drop in ~/vimfiles/plugin or ~/.vim/plugin
-" Version: 1.0
-" Changelog: - 1.0 : initial version
+" Version:     1.1
+" Changelog: - 1.1 : Adding foldtext to bet more information.
+"            - 1.0 : initial version
 " =============================================================================
 if exists("g:__HASKELLFOLD_VIM__")
     finish
@@ -56,8 +57,44 @@ fun! HaskellFold( lineNum ) "{{{
     return 1
 endfunction "}}}
 
+" This function skim over function definitions
+" skiping comments line :
+" -- ....
+" and merging lines without first non space element, to
+" catch the full type expression.
+fun! HaskellFoldText() "{{{
+	let i = v:foldstart
+	let retVal = ''
+	let began = 0
+
+	while i <= v:foldend
+        let line = getline(i)
+        if began == 0 && !(line =~ '^\s*--.*$')
+            let retVal = line
+            let began = 1
+        elseif began != 0 && line =~ '^\s\+\S'
+            let retVal = retVal . substitute( substitute( line
+                                                      \ , '\s\+\(.*\)$'
+                                                      \ , ' \1', '' )
+                                          \ , '\s\+--.*', ' ','')
+        elseif began != 0
+            break
+        endif
+
+		let i = i + 1
+    endwhile
+
+    if retVal == ''
+        " We didn't found any meaningfull text
+        return foldtext()
+    endif
+
+    return retVal
+endfunction "}}}
+
 augroup HaskellFold
-    au BufNewFile,BufRead,BufCreate *.hs set foldexpr=HaskellFold(v:lnum)
-    au BufNewFile,BufRead,BufCreate *.hs set foldmethod=expr
+    au BufNewFile,BufRead,BufCreate *.hs setlocal foldexpr=HaskellFold(v:lnum)
+    au BufNewFile,BufRead,BufCreate *.hs setlocal foldtext=HaskellFoldText()
+    au BufNewFile,BufRead,BufCreate *.hs setlocal foldmethod=expr
 augroup END
 
