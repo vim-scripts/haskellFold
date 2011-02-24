@@ -5,8 +5,9 @@
 " Warning: Assume the presence of type signatures on top of your functions to
 "          work well.
 " Usage:   drop in ~/vimfiles/plugin or ~/.vim/plugin
-" Version:     1.1
-" Changelog: - 1.1 : Adding foldtext to bet more information.
+" Version:     1.2
+" Changelog: - 1.2 : Reacting to file type instead of file extension.
+"            - 1.1 : Adding foldtext to bet more information.
 "            - 1.0 : initial version
 " =============================================================================
 if exists("g:__HASKELLFOLD_VIM__")
@@ -70,7 +71,7 @@ fun! HaskellFoldText() "{{{
 	while i <= v:foldend
         let line = getline(i)
         if began == 0 && !(line =~ '^\s*--.*$')
-            let retVal = line
+            let retVal = substitute(line, '\s\+--.*', ' ','')
             let began = 1
         elseif began != 0 && line =~ '^\s\+\S'
             let retVal = retVal . substitute( substitute( line
@@ -92,9 +93,14 @@ fun! HaskellFoldText() "{{{
     return retVal
 endfunction "}}}
 
+fun! s:setHaskellFolding() "{{{
+    setlocal foldexpr=HaskellFold(v:lnum)
+    setlocal foldtext=HaskellFoldText()
+    setlocal foldmethod=expr
+endfunction "}}}
+
 augroup HaskellFold
-    au BufNewFile,BufRead,BufCreate *.hs setlocal foldexpr=HaskellFold(v:lnum)
-    au BufNewFile,BufRead,BufCreate *.hs setlocal foldtext=HaskellFoldText()
-    au BufNewFile,BufRead,BufCreate *.hs setlocal foldmethod=expr
+    au!
+    au FileType Haskell call s:setHaskellFolding()
 augroup END
 

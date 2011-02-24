@@ -1,5 +1,9 @@
 This is a mirror of http://www.vim.org/scripts/script.php?script_id=2846
 
-Nice folding for haskell (*.hs) files.
+Provide a better folding for haskell file. The folded lines are transformed
+to display the type signature (if any) of the function, providing a great
+overview of your file content.
 
+You can see some screenshot at http://twinside.github.com/vim-haskellFold/ 
+GitHub repository : https://github.com/Twinside/vim-haskellFold
 
